@@ -1,28 +1,23 @@
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
+from flask import request
 from werkzeug.security import safe_str_cmp
 from flask_jwt_extended import create_access_token, create_refresh_token,get_jwt_identity, jwt_required, get_jwt
 from models.user import UserModel
 from blacklist import BLACKLIST
+from schemas.user import UserSchema
 
-_user_parser = reqparse.RequestParser()
-_user_parser.add_argument(
-    "username", type=str, required=True, help="This field cannot be blank."
-)
-_user_parser.add_argument(
-    "password", type=str, required=True, help="This field cannot be blank."
-)
+user_schema = UserSchema()
 
 
 class UserRegister(Resource):
 
     @classmethod
     def post(cls):
-        data = _user_parser.parse_args()
+        user = user_schema.load(request.get_json())
 
-        if UserModel.find_by_username(data["username"]):
+        if UserModel.find_by_username(user.username):
             return {"message": "A user with that username already exists."}, 400
 
-        user = UserModel(**data)
         user.save_to_db()
 
         return {"message": "User created successfully."}, 201
@@ -39,7 +34,7 @@ class User(Resource):
         user = UserModel.find_by_id(user_id)
         if not user:
             return {"message": "User not found."}, 404
-        return user.json(), 200
+        return user_schema.dump(user), 200
 
     @classmethod
     def delete(cls, user_id: int):
@@ -54,12 +49,11 @@ class UserLogin(Resource):
 
     @classmethod
     def post(cls):
-        data = _user_parser.parse_args()
-
-        user = UserModel.find_by_username(data["username"])
+        user_data = user_schema.load(request.get_json())
+        user = UserModel.find_by_username(user_data.username)
 
         # this is what the `authenticate()` function did in security.py
-        if user and safe_str_cmp(user.password, data["password"]):
+        if user and safe_str_cmp(user.password, user_data.password):
             # identity= is what the identity() function did in security.py—now stored in the JWT
             access_token = create_access_token(identity=user.id, fresh=True)
             refresh_token = create_refresh_token(user.id)
