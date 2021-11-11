@@ -3,18 +3,12 @@ import traceback
 from flask import render_template, make_response
 from flask_restful import Resource
 from time import time
-
+from libs.strings import gettext
 from libs.mailgun import MailGunException
 from models.confirmation import ConfirmationModel
 from models.user import UserModel
 from schemas.confirmation import ConfirmationSchema
 
-NOT_FOUND = "Confirmation reference not found."
-EXPIRED = "The link has expired."
-ALREADY_CONFIRMED = "Registration has already been confirmed."
-USER_NOT_FOUND = "User reference not found."
-RESEND_SUCCESFUL = "Email confirmation succesfully re-sent"
-RESEND_FAIL = "Internal server error. Failed to resend confirmation email."
 
 confirmation_schema = ConfirmationSchema()
 
@@ -24,19 +18,19 @@ class Confirmation(Resource):
         """Returns confirmations HTML page"""
         confirmation = ConfirmationModel.find_by_id(confirmation_id)
         if not confirmation:
-            return {"message": NOT_FOUND},404
+            return {"message": gettext("not_found")},404
 
         if confirmation.expired:
-            return {"message": EXPIRED},400
+            return {"message": gettext("expired")},400
 
         if confirmation.confirmed:
-            return {"message": ALREADY_CONFIRMED},400
+            return {"message": gettext("already_confirmed")},400
 
         confirmation.confirmed = True
         confirmation.save_to_db()
 
         headers = {"Content-Type": "text/html"}
-        return make_response(render_template("confirmation_path.html", email=confirmation.user.email), 200, headers)
+        return make_response(render_template("confirmation_page.html", email=confirmation.user.email), 200, headers)
 
 
 class ConfirmationByUser(Resource):
@@ -69,11 +63,11 @@ class ConfirmationByUser(Resource):
             new_confirmation = ConfirmationModel(user_id)
             new_confirmation.save_to_db()
             user.send_confirmation_email()
-            return {"message": RESEND_SUCCESFUL},200
+            return {"message": gettext("resend_succesful")},200
 
         except MailGunException as e:
             return {"message": str(e)}, 500
 
         except:
             traceback.print_exc()
-            return {"message": RESEND_FAIL}, 500
+            return {"message": gettext("resend_fail")}, 500

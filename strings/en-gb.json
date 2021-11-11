@@ -1,0 +1,9 @@
+
+{
+  "not_found": "Confirmation reference not found.",
+  "expired": "The link has expired.",
+  "already_confirmed": "Registration has already been confirmed.",
+  "user_not_found": "User reference not found.",
+  "resend_succesful": "Email confirmation succesfully re-sent",
+  "resend_fail": "Internal server error. Failed to resend confirmation email."
+}

@@ -1,0 +1,9 @@
+
+{
+  "not_found": "La referencia de confirmacion no encontrada.",
+  "expired": "El enlace ha expirado.",
+  "already_confirmed": "El registro ya esta confirmado.",
+  "user_not_found": "Usuario no encontrado.",
+  "resend_succesful": "Email de confirmacion reenviado",
+  "resend_fail": "Error interno, no se ha enviado la confirmacion."
+}
